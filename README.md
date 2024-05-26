@@ -1,5 +1,5 @@
 # ProcessWire Env Config
-A strategy for implementing .env config files in ProcessWire with supporting application.
+A strategy and application for implementing .env files in ProcessWire.
 
 This is a mock ProcessWire install shows an modified folder structure and files common to ProcessWire applications that moves public files and folders into a `public` directory. This creates a more secure root directory for assets that should not be served or accessed.
 
