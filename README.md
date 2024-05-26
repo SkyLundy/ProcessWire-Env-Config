@@ -13,6 +13,8 @@ This change is to both ensure that Composer is loaded globally first, and preven
 
 The only new requirement in maintaining this configuration is that any required updates to the ProcessWire `index.php` must now be made to `bootstrap.php` instead.
 
+A great addition to this application would be a bash script that handled the directory modifications, but I haven't the time. Pull requests are welcome for anyone who wants to put that together.
+
 ## Installation
 
 1. Update your directory structure to match the example here and referenced in the article linked above
