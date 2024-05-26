@@ -15,17 +15,19 @@ The only new requirement in maintaining this configuration is that any required 
 
 ## Installation
 
-1. Modify your `composer.json` file with the PSR4 autoloading entry
+1. Update your directory structure to match the example here and referenced in the article linked above
 
-2. Install phpdotenv using Composer
+2. Add the PSR4 autoloading entry to `composer.json`
+
+3. Install phpdotenv using Composer
 
 ```bash
 $ composer require vlucas/phpdotenv
 ```
 
-3. Create your `.env` file, example provided.
+4. Create your `.env` file and add values.
 
-4. **IMPORTANT** Modify your `.gitignore` file with the entries located in the example file included here
+**IMPORTANT** Modify your `.gitignore` file with the entries located in the included example
 
 ## Usage
 

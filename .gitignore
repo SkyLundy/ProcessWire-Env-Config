@@ -1,2 +1,2 @@
 .env
-/app/Env/cache/*
+/app/Env/cache/*.php
