@@ -66,7 +66,7 @@ if(!defined("PROCESSWIRE")) die();
 
 $env = Env::load();
 
-$env->pushToConfig($config, [
+$config = $env->pushToConfig($config, [
   'useFunctionsAPI' => 'USE_FUNCTIONS_API',
   'usePageClasses' => 'USE_PAGE_CLASSES',
   'useMarkupRegions' => 'USE_MARKUP_REGIONS',
