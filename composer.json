@@ -1,0 +1,27 @@
+{
+  "name": "firewire/processwire-env-config",
+  "type": "project",
+  "description": "A method of using .env files with ProcessWire",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/SkyLundy/ProcessWire-Env-Config",
+  "authors": [
+    {
+        "name": "Sky Lundy",
+        "email": "hello@skylundy.com",
+        "homepage": "https://www.skylundy.io",
+        "role": "Developer"
+    }
+  ],
+  "minimum-stability": "stable",
+  "autoload": {
+    "files": [ "public/wire/core/ProcessWire.php" ],
+    "psr-4": {
+        "App\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.2",
+    "ext-gd": "*",
+    "vlucas/phpdotenv": "^5.6"
+  }
+}
