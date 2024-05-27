@@ -19,7 +19,16 @@ A great addition to this application would be a bash script that handled the dir
 
 1. Update your directory structure to match the example here and referenced in the article linked above
 
-2. Add the PSR4 autoloading entry to `composer.json`
+2. Add the PSR4 autoloading entry to `composer.json` to add `src` as an application directory next to ProcessWire's `files` entry.
+
+```php
+"autoload": {
+  "files": [ "public/wire/core/ProcessWire.php" ],
+  "psr-4": {
+      "App\\": "src/"
+  }
+},
+````
 
 3. Install phpdotenv using Composer
 
@@ -29,11 +38,11 @@ $ composer require vlucas/phpdotenv
 
 4. Create your `.env` file and add values.
 
-**IMPORTANT** Modify your `.gitignore` file with the entries located in the included example
+**IMPORTANT** Modify your `.gitignore` file with the entries in the included example
 
 ## Usage
 
-The best place to use this application is in `/public/site/config.php`. Here's an example config file that uses this strategy:
+The best place to use this utility is in `/public/site/config.php`. Here's an example config file that uses this strategy:
 
 ```php
 <?php namespace ProcessWire;
@@ -113,7 +122,7 @@ $env->load(
 );
 
 // Modify boolean casting, in this example only 'true' and 'false' are cast, '0' and '1' are left
-// untouched as strings. An empty array will disable boolean casting.
+// untouched as strings. An empty array or false will disable boolean casting entirely
 $env->load(
   castBools: ['true', 'false']
 );
@@ -140,12 +149,16 @@ The `$env` object will still function as described above.
 
 ## Clearing The Cacahe
 
-Because values are cached, changes to the `.env` file require that the cache be cleared. This can be done via the `clearCache()` method.
+Because values are cached, changes to the `.env` file require that the cache be cleared. This can be done via the `clearCache()`.
 
 ```php
+Env::clearCache();
+
+// Or
+
 $env = Env::load();
 
-$env->clearCache();
+$env::clearCache();
 ```
 
 ## How It Works

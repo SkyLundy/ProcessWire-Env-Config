@@ -92,9 +92,12 @@ class Env
         return $this->memData;
     }
 
-    public function clearCache(): void
+    /**
+     * Deletes cached .env if it exists
+     */
+    public static function clearCache(): void
     {
-        if (!self::cachedConfigExists()) {
+        if (!file_exists(__DIR__ . self::CACHE_FILE)) {
             return;
         }
 
@@ -168,7 +171,7 @@ class Env
      */
     private function getCachedEnv(): ?array
     {
-        if (!self::cachedConfigExists()) {
+        if (!file_exists(__DIR__ . self::CACHE_FILE)) {
             return null;
         }
 
