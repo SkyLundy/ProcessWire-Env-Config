@@ -11,6 +11,7 @@ namespace Env;
 use Dotenv\Dotenv;
 use ProcessWire\Config;
 use RuntimeException;
+use stdClass;
 
 class Env
 {
@@ -25,21 +26,23 @@ class Env
 
     private function __construct(
         private string $envLocation,
-        private bool $createEnvVars,
+        private bool $createGlobalVars,
+        private bool $importGlobalVars,
         private bool $castBools,
         private bool $castInts,
         private bool $exceptionOnMissing,
     ) {
         $this->cacheFile = __DIR__ . '/cache/env.php';
 
-        $this->envData = self::loadEnv($createEnvVars);
+        $this->envData = self::loadEnv();
     }
 
     /**
      * Initialization method
      *
      * Load env config from cached file or .env if cache does not exist
-     * @param bool $createEnvVars      Create server env variables, otherwise values accessible by get()
+     * @param bool $createGlobalVars   Create server env variables, otherwise values accessible by get()
+     * @param bool $importGlobalVars   Import all variables that exist in the $_ENV global
      * @param bool $castBools          Cast 'true', 'false', '0', '1' values to booleans. If false,
      *                                 values will be strings
      * @param bool $castInts           Cast numbers to integers, if false values will be strings
@@ -47,12 +50,20 @@ class Env
      */
     public static function load(
         string $envLocation,
-        bool $createEnvVars = false,
+        bool $createGlobalVars = false,
+        bool $importGlobalVars = false,
         bool $castBools = true,
         bool $castInts = true,
         bool $exceptionOnMissing = false,
     ): self {
-        return new self($envLocation, $createEnvVars, $castBools, $castInts, $exceptionOnMissing);
+        return new self(
+            $envLocation,
+            $createGlobalVars,
+            $importGlobalVars,
+            $castBools,
+            $castInts,
+            $exceptionOnMissing
+        );
     }
 
     /**
@@ -66,21 +77,21 @@ class Env
         mixed $fallback = null,
         ?bool $exceptionOnMissing = null
     ): mixed {
-        $keyExists = $this->keyExists($key);
+        $exists = $this->exists($key);
 
         $exceptionOnMissing = $exceptionOnMissing ?? $this->exceptionOnMissing;
 
-        if (!$keyExists && $exceptionOnMissing) {
+        if (!$exists && $exceptionOnMissing) {
             throw new RuntimeException(
                 "The {$key} environment variable does not exist or could not be loaded"
             );
         }
 
-        if ($keyExists) {
+        if ($exists) {
             return $this->envData[$key];
         }
 
-        return $this->keyExists($fallback) ? $this->envData[$fallback] : $fallback;
+        return $this->exists($fallback) ? $this->envData[$fallback] : $fallback;
     }
 
     /**
@@ -152,10 +163,10 @@ class Env
         }
 
         if ($this->eq($key, $value)) {
-            return $this->keyExists($valueIfTrue) ? $this->get($valueIfTrue) : $valueIfTrue;
+            return $this->exists($valueIfTrue) ? $this->get($valueIfTrue) : $valueIfTrue;
         }
 
-        return $this->keyExists($valueIfFalse) ? $this->get($valueIfFalse) : $valueIfFalse;
+        return $this->exists($valueIfFalse) ? $this->get($valueIfFalse) : $valueIfFalse;
     }
 
     /**
@@ -198,10 +209,10 @@ class Env
         }
 
         if (!$this->eq($key, $value)) {
-            return $this->keyExists($valueIfTrue) ? $this->get($valueIfTrue) : $valueIfTrue;
+            return $this->exists($valueIfTrue) ? $this->get($valueIfTrue) : $valueIfTrue;
         }
 
-        return $this->keyExists($valueIfFalse) ? $this->get($valueIfFalse) : $valueIfFalse;
+        return $this->exists($valueIfFalse) ? $this->get($valueIfFalse) : $valueIfFalse;
     }
 
     /**
@@ -216,6 +227,39 @@ class Env
         mixed $valueIsFalse = null
     ): mixed {
         return $this->ifNot($key, $value, $valueIfTrue, $valueIsFalse);
+    }
+
+    /**
+     * Checks if a given environment variable exists
+     *
+     * @param  string $key Environment variable name
+     * @return bool
+     */
+    public function exists(?string $key): bool
+    {
+        if (!is_string($key)) {
+            return false;
+        }
+
+        return array_key_exists($key, $this->envData);
+    }
+
+    /**
+     * Gets all loaded environment variables/values as an array
+     * @return array
+     */
+    public function getArray(): array
+    {
+        return $this->envData;
+    }
+
+    /**
+     * Gets all loaded environment variables/values as an object
+     * @return array
+     */
+    public function getObject(): stdClass
+    {
+        return (object) $this->getArray();
     }
 
     /**
@@ -254,7 +298,7 @@ class Env
             }
 
             // If this is an environment variable, assign value or fallback
-            // if ($this->keyExists($value)) {
+            // if ($this->exists($value)) {
                 $value = $this->get($value, $fallback);
             // }
 
@@ -279,28 +323,13 @@ class Env
     }
 
     /**
-     * Checks if a given environment variable exists
-     *
-     * @param  string $key Environment variable name
-     * @return bool
-     */
-    public function keyExists(?string $key): bool
-    {
-        if (!is_string($key)) {
-            return false;
-        }
-
-        return array_key_exists($key, $this->envData);
-    }
-
-    /**
      * Loads data from cache, falls back to loading .env then caches
      */
-    private function loadEnv(bool $refresh = false): ?array
+    private function loadEnv(): ?array
     {
         $envVars = self::getCachedEnv();
 
-        if ($refresh || !$envVars || $this->envModified($envVars)) {
+        if (!$envVars || $this->envModified($envVars)) {
             $envVars = self::parseEnvFile();
             $envVars = $this->castValues($envVars);
             $envVars[self::LAST_MODIFIED_KEY] = $this->getEnvLastModified();
@@ -308,7 +337,15 @@ class Env
             $this->saveToCache($envVars);
         }
 
-        $this->createEnvVars && $this->pushToEnvironment($envVars);
+        $globalEnv = $_ENV;
+
+        if ($this->createGlobalVars) {
+            $this->pushToEnvironment($envVars);
+        }
+
+        if ($this->importGlobalVars) {
+            $envVars = $globalEnv + $envVars;
+        }
 
         return $envVars;
     }
