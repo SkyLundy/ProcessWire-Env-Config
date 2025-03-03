@@ -26,7 +26,7 @@ class Env
 
     private function __construct(
         private string $envLocation,
-        private bool $createGlobalVars,
+        private bool $createEnvVars,
         private bool $importGlobalVars,
         private bool $castBools,
         private bool $castInts,
@@ -41,8 +41,8 @@ class Env
      * Initialization method
      *
      * Load env config from cached file or .env if cache does not exist
-     * @param bool $createGlobalVars   Create server env variables, otherwise values accessible by get()
-     * @param bool $importGlobalVars   Import all variables that exist in the $_ENV global
+     * @param bool $createEnvVars      Create server env variables, otherwise values accessible by get()
+     * @param bool $importGlobalVars   Import all variables that exist in the global $_ENV
      * @param bool $castBools          Cast 'true', 'false', '0', '1' values to booleans. If false,
      *                                 values will be strings
      * @param bool $castInts           Cast numbers to integers, if false values will be strings
@@ -50,7 +50,7 @@ class Env
      */
     public static function load(
         string $envLocation,
-        bool $createGlobalVars = false,
+        bool $createEnvVars = false,
         bool $importGlobalVars = false,
         bool $castBools = true,
         bool $castInts = true,
@@ -58,7 +58,7 @@ class Env
     ): self {
         return new self(
             $envLocation,
-            $createGlobalVars,
+            $createEnvVars,
             $importGlobalVars,
             $castBools,
             $castInts,
@@ -280,10 +280,10 @@ class Env
      *     'advanced' => ['ENABLE_ADVANCED', 'value'],
      * ];
      *
-     * @param Config $processWirConfig The ProcessWire config object
+     * @param Config $processWirConfig The ProcessWire config object, mutates object
      * @param array  $configMap        The array of config to env var map
      */
-    public function pushToConfig(Config $processWireConfig, array $configMap): Config
+    public function pushToConfig(Config &$processWireConfig, array $configMap): Config
     {
         foreach ($configMap as $configProperty => $value) {
             $fallback = null;
@@ -293,16 +293,19 @@ class Env
             }
 
             // A value may be an array of ['VAR_NAME', {fallback value or env var name}]
+            // Check if first index is a variable name and treat it as a value/fallback if so
             if (is_array($value) && count($value) === 2) {
-                [$value, $fallback] = $value;
+                $prop1 = $value[0];
+
+                if (is_string($prop1) && $this->exists($prop1)) {
+                    [$value, $fallback] = $value;
+                }
             }
 
             // If this is an environment variable, assign value or fallback
-            // if ($this->exists($value)) {
+            if (is_string($value) && $this->exists($value)) {
                 $value = $this->get($value, $fallback);
-            // }
-
-
+            }
 
             $processWireConfig->{$configProperty} = $value;
         }
@@ -339,7 +342,7 @@ class Env
 
         $globalEnv = $_ENV;
 
-        if ($this->createGlobalVars) {
+        if ($this->createEnvVars) {
             $this->pushToEnvironment($envVars);
         }
 
