@@ -26,7 +26,7 @@ class Env
 
     private function __construct(
         private string $envLocation,
-        private bool $createEnvVars,
+        private bool $createGlobalVars,
         private bool $importGlobalVars,
         private bool $castBools,
         private bool $castInts,
@@ -41,7 +41,7 @@ class Env
      * Initialization method
      *
      * Load env config from cached file or .env if cache does not exist
-     * @param bool $createEnvVars      Create server env variables, otherwise values accessible by get()
+     * @param bool $createGlobalVars      Create server env variables, otherwise values accessible by get()
      * @param bool $importGlobalVars   Import all variables that exist in the global $_ENV
      * @param bool $castBools          Cast 'true', 'false', '0', '1' values to booleans. If false,
      *                                 values will be strings
@@ -50,7 +50,7 @@ class Env
      */
     public static function load(
         string $envLocation,
-        bool $createEnvVars = false,
+        bool $createGlobalVars = false,
         bool $importGlobalVars = false,
         bool $castBools = true,
         bool $castInts = true,
@@ -58,7 +58,7 @@ class Env
     ): self {
         return new self(
             $envLocation,
-            $createEnvVars,
+            $createGlobalVars,
             $importGlobalVars,
             $castBools,
             $castInts,
@@ -342,7 +342,7 @@ class Env
 
         $globalEnv = $_ENV;
 
-        if ($this->createEnvVars) {
+        if ($this->createGlobalVars) {
             $this->pushToEnvironment($envVars);
         }
 

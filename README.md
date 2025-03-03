@@ -103,12 +103,16 @@ $config = $env->pushToConfig($config, [
   'defaultAdminTheme' => 'DEFAULT_ADMIN_THEME',
   'installed' => 'INSTALLED',
   'debug' => ['DEBUG', false], // Use an array to specify a fallback value
+  'usePageClasses' => true, // Assign values not stored in .env
+  'httpHosts' => [
+    'yourdomain.com',
+    'anotherdomain.com',
+  ],
 ]);
 
-// Arrays aren't for .env files...
-$config->httpHosts = ['yourdomain.com', 'anotherdomain.com'];
-
 ```
+In addition to assigning environment variables in `pushToConfig` you may also assign values of any type, example above is the
+
 
 ### Initialization Options
 
@@ -127,8 +131,8 @@ Env::load(
 );
 ```
 - `$envLocation` - The path to your `.env` file
-- `$createGlobalVars` - Create environment variables from your .env file accessible via the `$_ENV` global. **Warning:** the values in your `.env` file will overwrite any existing if keys match
-- `$importGlobalVars` - Imports all of the global `$_ENV` vars to the Env object. **Warning:** the values in your `.env` file will overwrite any existing if keys match
+- `$createGlobalVars` - Create environment variables from your .env file accessible via the `$_ENV` global. **Note:** ensure that there are no variable name conflicts to prevent overwriting values.
+- `$importGlobalVars` - Imports all of the global `$_ENV` vars to the Env object. **Note:** **Warning:** ensure that there are no variable name conflicts to prevent overwriting values
 - `$castBools` - Cast env string values of 'true' and 'false' to boolean `true` and `false` respectively
 - `$castInts` - Cast env string integer values to integers
 - `$exceptionOnMissing` - Passing `true` for this parameter means that attempting to access an environment variable that does not exist in the `.env` file will throw a `RuntimeException`. This may be helpful during development and debugging.
@@ -144,12 +148,16 @@ Env provides some additional methods that may be helpful if you require conditio
 $env->exists('ENV_VAR');
 
 $env->is('ENV_VAR', 'conditional value');
-$env->eq('ENV_VAR', 'conditional value'); // Alias for eq()
+$env->eq('ENV_VAR', 'conditional value'); // Alias for is()
 
 $env->isNot('ENV_VAR', 'conditional value');
-$env->notEq('ENV_VAR', 'conditional value'); // Alias for eq()
+$env->notEq('ENV_VAR', 'conditional value'); // Alias for isNot()
 
 $env->if('ENV_VAR', 'conditional value', 'return if equals', 'return if does not equal');
+
+// You may use other env variable names or combinations as truthy/falsey return values.
+// This works with any conditional
+$env->if('ENV_VAR', 'conditional value', 'ENV_IF_TRUE', 'ENV_IS_FALSE');
 
 $env->ifNot('ENV_VAR', 'conditional value', 'return if does not equal', 'return if does equal');
 $env->ifNotEq('ENV_VAR', 'conditional value', 'return if does not equal', 'return if does equal'); // Alias for ifNot()
