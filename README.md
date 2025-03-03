@@ -186,7 +186,7 @@ Work with env values directly in your code
 try {
   // Do something dangerous
 } catch (Exception $e) {
-    $message = $config->env('APP_ENV', 'production', 'Oh no. Friendly message', $e->getMessage());
+    $message = $config->env->if('APP_ENV', 'production', 'Oh no. Friendly message', $e->getMessage());
 }
 ```
 
