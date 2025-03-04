@@ -235,7 +235,7 @@ class Env
      * @param  string $key Environment variable name
      * @return bool
      */
-    public function exists(?string $key): bool
+    public function exists(mixed $key): bool
     {
         if (!is_string($key)) {
             return false;
